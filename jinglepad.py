@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#                JingleDeck
+#                 based on
 #         Python Stream Deck Library
 #      Released under the MIT license
 #
@@ -14,6 +16,7 @@ import os
 import threading
 import pygame
 import decksets
+import keyplayers
 
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
@@ -41,61 +44,6 @@ currentstate = [False,
                 False,
                 False,
                 False]
-"""
-keys=[
-    [
-        ["cmd-q1","","qoutes 1"],
-        ["cmd-q2","","qoutes 2"],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""]
-     ],
-    [
-        ["cmd-up","ico72_back",""],
-        ["quote Freriks - Dank je voor deze analyse.wav","philip","Analyse"],
-        ["quote Freriks - Over op een optimistischer onderwerp.wav","philip","Optimist"],
-        ["quote_Teringlijers.wav","philip","Teringlijers"],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["gatverrdamme.wav","gatverdamme","Gatverdamme"],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""]
-     ],
-    [
-        ["cmd-up","ico72_back",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""],
-        ["","",""]
-     ]
-    ]
-"""
 
 # Generates a custom tile with run-time generated text and custom image via the
 # PIL module.
@@ -182,17 +130,18 @@ def key_change_callback(deck, key, state):
     
     key_name = key_style["name"]
     
+    #handle navigation
     if is_command(key_name,state):
         if key_name[4:100]=="up":
             keyset = 0
-            print("keyset 0 (click:up)")
+            print("> SELECT keyset 0 (click:up)")
             for key in range(deck.key_count()):
                 update_key_image(deck, key, False)
             return
         
         if key_name[4:5]=="q":             
             keyset = int(key_style["name"][5:6])
-            print("keyset {} ({})".format(keyset, key_name[4:100]))   
+            print("> Select keyset {} ({})".format(keyset, key_name[4:100]))   
             
             for key in range(deck.key_count()):
                 update_key_image(deck, key, False)
@@ -200,12 +149,11 @@ def key_change_callback(deck, key, state):
     
     # Update the key image based on the new key state.
     update_key_image(deck, key, state)
-        
-    print("check key {} of keyset {} : {}".format(key, keyset,state))
+    
         
     # Check if the key is changing to the pressed state.
     if state:
-        handle_key_down(deck, key)
+        print("Click key {} of keyset {} : {}".format(key, keyset,state))
 
         # When an exit button is pressed, close the application.
         if key_style["name"] == "exit":
@@ -217,24 +165,22 @@ def key_change_callback(deck, key, state):
 
                 # Close deck handle, terminating internal worker threads.
                 deck.close()
+                
+        handle_key_down(deck, key)
     #else:
         #handle_key_up(deck, key)
 
 def handle_key_down(deck, key) :
-    if currentstate[key]:
-        print("stop")
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.fadeout(500)
-        currentstate[key] = False
+    if keyplayers.IsPlaying(key):
+        keyplayers.Stop(key)
     else:
         audiofile = decksets.keys[keyset][key][0]
         if audiofile=="":
             return
         
         audio = os.path.join(AUDIO_PATH, audiofile)
-        pygame.mixer.music.load(audio)
-        pygame.mixer.music.play()
-        currentstate[key] = True 
+        keyplayers.Play(key,audio)
+
         
 #    while pygame.mixer.music.get_busy() == True:
 #        continue
