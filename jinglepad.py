@@ -186,15 +186,11 @@ def handle_key_down(deck, key) :
 #        continue
 
 def handle_key_up(deck, key) :
-    print("stop")
-    if pygame.mixer.music.get_busy():
-        pygame.mixer.music.fadeout(500)
+    print("handle_key_up")
 
 if __name__ == "__main__":
-    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
-    print("Init {}".format(pygame.mixer.get_init()))
-    
-    print("Number of channels {}".format(pygame.mixer.get_num_channels()))
+    keyplayers.Init();
+
     streamdecks = DeviceManager().enumerate()
 
     print("Found {} Stream Deck(s).\n".format(len(streamdecks)))
